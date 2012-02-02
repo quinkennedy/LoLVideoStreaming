@@ -18,10 +18,16 @@ public class LoLVideoStreaming extends PApplet {
 	Movie movie;
 	int screenWidth = 600;
 	int screenHeight = 400;
+	Serial serial;
+	byte[] frame = new byte[lolWidth * lolHeight];
 
 	public void setup() {
 		lowRes = createGraphics(lolWidth, lolHeight, P2D);
 		size(screenWidth,screenHeight);
+		int i = 0;
+		for(String s : Serial.list()){
+			println(i++ + ": " + s);
+		}
 	}
 
 	public void draw() {
@@ -43,11 +49,19 @@ public class LoLVideoStreaming extends PApplet {
 					lowRes.image(movie, 0, 0);
 				lowRes.popMatrix();
 			lowRes.endDraw();
+			int i = 0;
+			for(int p : lowRes.pixels){
+				frame[i++] = (byte)((p|255)*8/255);
+			}
+			if (serial != null){
+				serial.write(frame);
+			}
+			fill(0);
+			rect(0,0,(lolWidth + 1) << 1, (lolHeight + 1) << 1);
 			pushMatrix();
+				translate(1,1);
 				scale(2,2);
-				fill(0);
-				rect(0,0,lolWidth + 1, lolHeight + 1);
-				image(lowRes,.5f,.5f);
+				image(lowRes,0,0);
 			popMatrix();
 		}
 	}
@@ -55,6 +69,10 @@ public class LoLVideoStreaming extends PApplet {
 	public void movieEvent(Movie m){
 		m.read();
 		redraw();
+	}
+	
+	public void keyPressed(){
+		serial = new Serial(this, Serial.list()[key - '0'], 9600);
 	}
 	
 	public static void main(String _args[]) {
