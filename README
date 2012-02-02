@@ -1,0 +1,4 @@
+A project to be able to stream video and pictures over the serial connection to an Arduino with the LoL shield attached.
+
+References:
+http://www.cibomahto.com/2010/08/lol-processing/
