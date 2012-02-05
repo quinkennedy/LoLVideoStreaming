@@ -23,7 +23,7 @@ public class LoLVideoStreaming extends PApplet {
 
 	public void setup() {
 		lowRes = createGraphics(lolWidth, lolHeight, P2D);
-		size(screenWidth,screenHeight);
+		size(600,400);//screenWidth,screenHeight);
 		int i = 0;
 		for(String s : Serial.list()){
 			println(i++ + ": " + s);
