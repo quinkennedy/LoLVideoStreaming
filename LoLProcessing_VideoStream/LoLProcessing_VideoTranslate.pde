@@ -15,22 +15,31 @@ public class Translater {
       }
     }
   }
-
-  public byte[] Translate(Movie m) {
+  
+  public byte[] Translate(PImage p){
     if (currType == TranslateType.Linear) {
-      return Linear(m);
+      return Linear(p);
     } 
     else if (currType == TranslateType.Exponential) {
-      return Exponential(m);
+      return Exponential(p);
     } 
     else if (currType == TranslateType.FrameHist) {
-      return FrameHist(m);
+      return FrameHist(p);
     } 
-    else if (currType == TranslateType.MovingHist) {
-      return MovingHist(m);
-    } 
-    else {
+    else{
+      return MovingHist(p);
+    }
+  }
+  
+  public byte[] Translate(Capture c){
+    return Translate(GetImage(c));
+  }
+
+  public byte[] Translate(Movie m) {
+    if (currType == TranslateType.OverallHist){
       return OverallHist(m);
+    } else {
+    return Translate(GetImage(m));
     }
   }
 
@@ -52,13 +61,23 @@ public class Translater {
     lowRes.endDraw();
     return lowRes;
   }
+  
+  private PImage GetImage(Capture c){
+    PGraphics lowRes = createGraphics(lolWidth, lolHeight, P2D);
+    lowRes.beginDraw();
+    lowRes.pushMatrix();
+    lowRes.scale((float)lolWidth/(screenWidth/2), (float)lolHeight/screenHeight);
+    lowRes.image(c, 0, 0);
+    lowRes.popMatrix();
+    lowRes.endDraw();
+    return lowRes;
+  }
 
   private byte[] GetResult(byte[] original) {
     return original;
   }
 
-  private byte[] Exponential(Movie m) {
-    PImage img = GetImage(m);
+  private byte[] Exponential(PImage img) {
     byte[] data = new byte[img.width * img.height + 1];
     data[0] = 10;
 
@@ -74,8 +93,7 @@ public class Translater {
     return GetResult(data);
   }
 
-  private byte[] Linear(Movie m) {
-    PImage img = GetImage(m);
+  private byte[] Linear(PImage img) {
     byte[] data = new byte[img.width * img.height + 1];
     data[0] = 10;
 
@@ -89,8 +107,7 @@ public class Translater {
     return GetResult(data);
   }
 
-  private byte[] FrameHist(Movie m) {
-    PImage img = GetImage(m);
+  private byte[] FrameHist(PImage img) {
     byte[] data = new byte[numPixels + 1];
     int[] intermediate = new int[numPixels];
     int[] distribution = new int[numPixels];
@@ -132,8 +149,7 @@ public class Translater {
 
   LinkedList movingWindow = new LinkedList();
   int windowSize = 100 * numPixels;//one second? we could also use DelayQueue to ensure 1 second..
-  private byte[] MovingHist(Movie m) {
-    PImage img = GetImage(m);
+  private byte[] MovingHist(PImage img) {
     byte[] data = new byte[numPixels + 1];
     int[] intermediate = new int[numPixels];
     Integer[] distribution;
