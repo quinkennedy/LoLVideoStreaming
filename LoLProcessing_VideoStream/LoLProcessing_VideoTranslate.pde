@@ -39,7 +39,14 @@ public class Translater {
     if (currType == TranslateType.OverallHist){
       return OverallHist(m);
     } else {
-    return Translate(GetImage(m));
+      PImage lowRes = GetImage(m);
+      //copy(lowRes, 0, 0, lowRes.width, lowRes.height, vizWidth >> 1, 0, 100, 100);
+      //pushMatrix();
+      //translate(vizWidth >> 1, 0);
+      //scale(10);
+      image(lowRes, vizWidth >> 1, 0);
+      //popMatrix();
+    return Translate(lowRes);
     }
   }
 
@@ -52,13 +59,22 @@ public class Translater {
   }
 
   private PImage GetImage(Movie m) {
-    PGraphics lowRes = createGraphics(lolWidth, lolHeight, P2D);
+    println("get it: " + lolWidth + "," + lolHeight);
+    PGraphics lowRes = createGraphics(lolWidth, lolHeight);//, P2D);
     lowRes.beginDraw();
+    //lowRes.background(255);
     lowRes.pushMatrix();
     lowRes.scale((float)lolWidth/m.width, (float)lolHeight/m.height);
     lowRes.image(m, 0, 0);
+    if (bInvert){
+      lowRes.filter(INVERT);
+    }
+    //lowRes.copy(m, 0, 0, m.width, m.height, 0, 0, lolWidth, lolHeight);
+    //image(m, vizWidth >> 1, 0);
     lowRes.popMatrix();
     lowRes.endDraw();
+    //populate the pixels array with displayed pixel content
+    lowRes.loadPixels();
     return lowRes;
   }
   
@@ -66,7 +82,7 @@ public class Translater {
     PGraphics lowRes = createGraphics(lolWidth, lolHeight, P2D);
     lowRes.beginDraw();
     lowRes.pushMatrix();
-    lowRes.scale((float)lolWidth/(screenWidth/2), (float)lolHeight/screenHeight);
+    lowRes.scale((float)lolWidth/(vizWidth/2), (float)lolHeight/vizHeight);
     lowRes.image(c, 0, 0);
     lowRes.popMatrix();
     lowRes.endDraw();
@@ -100,10 +116,12 @@ public class Translater {
     int i = 1;
     int sumMax = 255*3;
     int sum;
-    for (int p : img.pixels) {
+    for (color p : img.pixels) {
       sum = ((p&255) + ((p >> 8)&255) + ((p >> 16)&255));
+      print(sum + "|");
       data[i++] = (byte)(sum*numLevels/sumMax);
     }
+    println();
     return GetResult(data);
   }
 
@@ -260,4 +278,3 @@ public static class TranslateType {
   private TranslateType() {
   }
 }
-

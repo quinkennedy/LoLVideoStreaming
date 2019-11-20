@@ -1,5 +1,6 @@
 import processing.video.*;
 import processing.serial.*;
+import java.util.Arrays;
 
 PGraphics lowRes;
 int lolWidth = 14;
@@ -7,13 +8,15 @@ int lolHeight = 9;
 int numLevels = 8;
 int numPixels = lolWidth * lolHeight;
 Movie movie;
+boolean bWaitingForMovie = false;
 Capture cam;
 boolean bUseCamera = true;
-int screenWidth = 1200;
-int screenHeight = 400;
+int vizWidth = 1400;
+int vizHeight = 450;
 Serial serial;
 boolean bFirstFrame = true;
 boolean bUseShield = false;
+boolean bInvert = false;
 Translater trans = new Translater(TranslateType.Linear);
 ConsoleNode consoleHead;
 int InputType = 0;
@@ -25,8 +28,12 @@ public class LightType {
   static final int HistEqualization = 3;
 }
 
+void settings(){
+  size(vizWidth, vizHeight);//, P2D);
+}
+
 public void setup() {
-  size(screenWidth, screenHeight);
+  //size(vizWidth, vizHeight);
   printCamInstructions();
 }
 
@@ -72,25 +79,37 @@ private void printShieldInstructions(){
         InputType = 2;
 }
 
+public void choseVideo(File video){
+  if (video != null) {
+    movie = new Movie(this, video.getAbsolutePath());
+    movie.loop();
+    noLoop();
+  }
+  bWaitingForMovie = false;
+}
+
 public void draw() {
   byte[] data = null;
   if (bUseCamera && cam != null) {
     image(cam, 0, 0);
+    if (bInvert){
+      filter(INVERT);
+    }
     data = trans.Translate(cam);
   } else if (!bUseCamera) {
     if (movie == null) {
-      String sFilename = selectInput();
-      if (sFilename != null) {
-        movie = new Movie(this, sFilename);
-        movie.loop();
-        noLoop();
+      if (!bWaitingForMovie){
+        bWaitingForMovie = true;
+        selectInput("choose a video", "choseVideo");
       }
     } else {
       pushMatrix();
-      scale((float)(screenWidth >> 1)/movie.width, (float)screenHeight/movie.height);
+      scale((float)(vizWidth >> 1)/movie.width, (float)vizHeight/movie.height);
       image(movie, 0, 0);
+      if (bInvert){
+        filter(INVERT);
+      }
       popMatrix();
-
       data = trans.Translate(movie);
     }
   }
@@ -98,7 +117,6 @@ public void draw() {
       if (serial != null) {
         serial.write(data);
       }
-
       PImage lowRes = createImage(lolWidth, lolHeight, RGB);
       int i = 0;
       int value;
@@ -108,8 +126,8 @@ public void draw() {
       }
       lowRes.updatePixels();
       pushMatrix();
-      translate(screenWidth >> 1, 0);
-      scale((float)(screenWidth >> 1)/lolWidth, (float)screenHeight/lolHeight);
+      translate(vizWidth >> 1, 0);
+      scale((float)(vizWidth >> 1)/lolWidth, (float)vizHeight/lolHeight);
       image(lowRes, 0, 0);
       popMatrix();
       //ideally, draw grayscale image
@@ -141,7 +159,7 @@ public void keyPressed() {
         if (cam != null){
           cam.stop();
         }
-        cam = new Capture(this, screenWidth/2, screenHeight, Capture.list()[key - '0']);
+        cam = new Capture(this, vizWidth/2, vizHeight, Capture.list()[key - '0']);
         break;
       case 2://serial input
         if (serial != null){
@@ -154,14 +172,18 @@ public void keyPressed() {
   } 
   else {
     switch (key) {
+    case 'i':
+    case 'I':
+      bInvert = !bInvert;
+      break;
     case 'n':
     case 'N':
       movie.stop();
       movie = null;
       loop();
       break;
-    case 'l':
-    case 'L':
+    case 'a':
+    case 'A':
       trans.SetType(TranslateType.Linear);
       break;
     case 'e':
@@ -197,4 +219,3 @@ public void keyPressed() {
     }
   }
 }
-
