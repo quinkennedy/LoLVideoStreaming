@@ -14,6 +14,8 @@ Currently you can only select single-digit options (0-9).
 
 ### Commands
 
+#### General
+
 * __C__ : toggle camera capture mode
   - When not in capture mode, you will be prompted to select a video file
 * __S__ : open serial stream
@@ -23,11 +25,12 @@ Currently you can only select single-digit options (0-9).
 #### Image Control
 
 * __I__ : invert the image
-* __R__ : rotate 90 degrees clockwise (TODO)
-* __l__/__L__ : crop in/out left side (TODO)
-* __r__/__R__ : crop in/out right side (TODO)
-* __t__/__T__ : crop in/out top edge (TODO)
-* __b__/__B__ : crop in/out bottom edge (TODO)
+* __D__ : blend mode
+  - Cycles through BLEND -> DARKEST -> LIGHTEST
+* __l__/__L__ : crop in/out left side
+* __r__/__R__ : crop in/out right side
+* __t__/__T__ : crop in/out top edge
+* __b__/__B__ : crop in/out bottom edge
 
 #### RGB to Greyscale Methods
 

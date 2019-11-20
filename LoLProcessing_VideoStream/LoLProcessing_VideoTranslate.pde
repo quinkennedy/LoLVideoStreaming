@@ -16,7 +16,7 @@ public class Translater {
     }
   }
   
-  public byte[] Translate(PImage p){
+  public byte[] TranslateImpl(PImage p){
     if (currType == TranslateType.Linear) {
       return Linear(p);
     } 
@@ -31,24 +31,26 @@ public class Translater {
     }
   }
   
+  /*
   public byte[] Translate(Capture c){
-    return Translate(GetImage(c));
+    return TranslateImpl(GetImage(c));
   }
+  */
 
   public byte[] Translate(Movie m) {
     if (currType == TranslateType.OverallHist){
       return OverallHist(m);
     } else {
       PImage lowRes = GetImage(m);
-      //copy(lowRes, 0, 0, lowRes.width, lowRes.height, vizWidth >> 1, 0, 100, 100);
-      //pushMatrix();
-      //translate(vizWidth >> 1, 0);
-      //scale(10);
-      image(lowRes, vizWidth >> 1, 0);
-      //popMatrix();
-    return Translate(lowRes);
+      return TranslateImpl(lowRes);
     }
   }
+  
+  public byte[] Translate(PImage i){
+    PImage lowRes = GetImage(i);
+    return TranslateImpl(lowRes);
+  }
+    
 
   private byte[] DownSample(byte[] original) {
     return new byte[0];
@@ -58,9 +60,8 @@ public class Translater {
     return createImage(1,1,RGB);
   }
 
-  private PImage GetImage(Movie m) {
-    println("get it: " + lolWidth + "," + lolHeight);
-    PGraphics lowRes = createGraphics(lolWidth, lolHeight);//, P2D);
+  private PImage GetImage(PImage m) {
+    PGraphics lowRes = createGraphics(lolWidth, lolHeight);
     lowRes.beginDraw();
     //lowRes.background(255);
     lowRes.pushMatrix();
@@ -78,6 +79,8 @@ public class Translater {
     return lowRes;
   }
   
+  /*
+  //TODO: test with camera to make sure we don't need this
   private PImage GetImage(Capture c){
     PGraphics lowRes = createGraphics(lolWidth, lolHeight, P2D);
     lowRes.beginDraw();
@@ -88,6 +91,7 @@ public class Translater {
     lowRes.endDraw();
     return lowRes;
   }
+  */
 
   private byte[] GetResult(byte[] original) {
     return original;
@@ -118,10 +122,8 @@ public class Translater {
     int sum;
     for (color p : img.pixels) {
       sum = ((p&255) + ((p >> 8)&255) + ((p >> 16)&255));
-      print(sum + "|");
       data[i++] = (byte)(sum*numLevels/sumMax);
     }
-    println();
     return GetResult(data);
   }
 

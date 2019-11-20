@@ -3,6 +3,7 @@ import processing.serial.*;
 import java.util.Arrays;
 
 PGraphics lowRes;
+PGraphics scratchpad;
 int lolWidth = 14;
 int lolHeight = 9;
 int numLevels = 8;
@@ -17,9 +18,14 @@ Serial serial;
 boolean bFirstFrame = true;
 boolean bUseShield = false;
 boolean bInvert = false;
+int blendMode = 0;
 Translater trans = new Translater(TranslateType.Linear);
 ConsoleNode consoleHead;
 int InputType = 0;
+int offsetLeft = 0;
+int offsetRight = 0;
+int offsetTop = 0;
+int offsetBottom = 0;
 
 public class LightType {
   static final int Exponential = 0;
@@ -83,7 +89,6 @@ public void choseVideo(File video){
   if (video != null) {
     movie = new Movie(this, video.getAbsolutePath());
     movie.loop();
-    noLoop();
   }
   bWaitingForMovie = false;
 }
@@ -101,16 +106,20 @@ public void draw() {
       if (!bWaitingForMovie){
         bWaitingForMovie = true;
         selectInput("choose a video", "choseVideo");
+        noLoop();
       }
     } else {
-      pushMatrix();
-      scale((float)(vizWidth >> 1)/movie.width, (float)vizHeight/movie.height);
-      image(movie, 0, 0);
-      if (bInvert){
-        filter(INVERT);
+      ingestMovie();
+      if (scratchpad != null){
+        pushMatrix();
+        scale((float)(vizWidth >> 1)/scratchpad.width, (float)vizHeight/scratchpad.height);
+        image(scratchpad, 0, 0);
+        popMatrix();
+        if (bInvert){
+          filter(INVERT);
+        }
+        data = trans.Translate(scratchpad);
       }
-      popMatrix();
-      data = trans.Translate(movie);
     }
   }
   if (data != null){
@@ -140,6 +149,61 @@ public void draw() {
       //    popMatrix();
   }
   drawConsole();
+}
+
+void ingestMovie(){
+  if (scratchpad == null){
+    scratchpad = createGraphics(movie.width, movie.height);
+  }
+  int mode = BLEND;
+  switch (blendMode){
+    case 1:
+      mode = DARKEST;
+      break;
+    case 2:
+      mode = LIGHTEST;
+      break;
+  }
+  scratchpad.beginDraw();
+  
+  //defaults
+  int sx = 0;
+  int sy = 0;
+  int sw = movie.width;
+  int sh = movie.height;
+  int dx = 0;
+  int dy = 0;
+  int dw = scratchpad.width;
+  int dh = scratchpad.height;
+  
+  //adjust according to offsets
+  if (offsetLeft < 0){
+    sx = -offsetLeft;
+    sw += offsetLeft;
+  } else if (offsetLeft > 0){
+    dx = offsetLeft;
+    dw -= offsetLeft;
+  }
+  if (offsetTop < 0){
+    sy = -offsetTop;
+    sh += offsetTop;
+  } else if (offsetTop > 0){
+    dy = offsetTop;
+    dh -= offsetTop;
+  }
+  if (offsetRight < 0){
+    sw += offsetRight;
+  } else if (offsetRight > 0){
+    dw -= offsetRight;
+  }
+  if (offsetBottom < 0){
+    sh += offsetBottom;
+  } else if (offsetBottom > 0){
+    dh -= offsetBottom;
+  }
+  
+  scratchpad.blend(movie, sx, sy, sw, sh, dx, dy, dw, dh, mode);
+  scratchpad.endDraw();
 }
 
 public void movieEvent(Movie m) {
@@ -180,6 +244,7 @@ public void keyPressed() {
     case 'N':
       movie.stop();
       movie = null;
+      scratchpad = null;
       loop();
       break;
     case 'a':
@@ -215,6 +280,34 @@ public void keyPressed() {
       if (bUseShield) {
         printShieldInstructions();
       }
+      break;
+    case 'd'://change blend mode
+    case 'D':
+      blendMode = ((blendMode + 1) % 3);
+      break;
+    case 't':
+      offsetTop -= 1;
+      break;
+    case 'T':
+      offsetTop += 1;
+      break;
+    case 'b':
+      offsetBottom -= 1;
+      break;
+    case 'B':
+      offsetBottom += 1;
+      break;
+    case 'l':
+      offsetLeft -= 1;
+      break;
+    case 'L':
+      offsetLeft += 1;
+      break;
+    case 'r':
+      offsetRight -= 1;
+      break;
+    case 'R':
+      offsetRight += 1;
       break;
     }
   }
