@@ -10,6 +10,7 @@ int numLevels = 8;
 int numPixels = lolWidth * lolHeight;
 Movie movie;
 boolean bWaitingForMovie = false;
+float prevMovieTime = -1;
 Capture cam;
 boolean bUseCamera = true;
 int vizWidth = 1400;
@@ -18,6 +19,7 @@ Serial serial;
 boolean bFirstFrame = true;
 boolean bUseShield = false;
 boolean bInvert = false;
+boolean bWriteFile = false;
 int blendMode = 0;
 Translater trans = new Translater(TranslateType.Linear);
 ConsoleNode consoleHead;
@@ -26,6 +28,7 @@ int offsetLeft = 0;
 int offsetRight = 0;
 int offsetTop = 0;
 int offsetBottom = 0;
+JSONArray fileData;
 
 public class LightType {
   static final int Exponential = 0;
@@ -126,6 +129,7 @@ public void draw() {
       if (serial != null) {
         serial.write(data);
       }
+      formatFileData(data);
       PImage lowRes = createImage(lolWidth, lolHeight, RGB);
       int i = 0;
       int value;
@@ -149,6 +153,18 @@ public void draw() {
       //    popMatrix();
   }
   drawConsole();
+}
+
+void formatFileData(byte[] data){
+  if (bWriteFile && fileData != null){
+    JSONArray frame = new JSONArray();
+    //first byte is a frame reset command
+    // which we don't need in this case
+    for(int i = 1; i < data.length; i++){
+      frame.append(data[i]);
+    }
+    fileData.append(frame);
+  }
 }
 
 void ingestMovie(){
@@ -208,7 +224,20 @@ void ingestMovie(){
 
 public void movieEvent(Movie m) {
   m.read();
+  if (bWriteFile && movie.time() < prevMovieTime){
+    //in file mode and movie just looped
+    if (fileData == null){
+      cPrint("starting recording");
+      fileData = new JSONArray();
+    } else {
+      saveJSONArray(fileData, "out.json", "compact");
+      cPrint("stopping recording, saved data");
+      bWriteFile = false;
+      fileData = null;
+    }
+  }
   redraw();
+  prevMovieTime = movie.time();
 }
 
 public void captureEvent(Capture c){
@@ -236,6 +265,25 @@ public void keyPressed() {
   } 
   else {
     switch (key) {
+    case 'f':
+    case 'F':
+      if (bWriteFile){
+        saveJSONArray(fileData, "out.json", "compact");
+        cPrint("manually stopped recording, saved file");
+        bWriteFile = false;
+        fileData = null;
+      } else {
+        bWriteFile = true;
+        if (bUseCamera){
+          //when using the camera, start recording right away
+          cPrint("starting recording");
+          fileData = new JSONArray();
+        } else {
+          //when playing a video, 
+          // let the video playback logic start recording when the video loops
+        }
+      }
+      break;
     case 'i':
     case 'I':
       bInvert = !bInvert;

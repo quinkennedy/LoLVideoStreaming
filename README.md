@@ -21,6 +21,10 @@ Currently you can only select single-digit options (0-9).
 * __S__ : open serial stream
   - This will present you with a list of serial ports to choose from using the numeric keys
 * __N__ : stop the current movie and prompt for another
+* __F__ : toggle writing bytes to file
+  - During movie playback, this will start and end with the next loop
+  - During camera capture, this will start immediately, and end when you press __F__ again
+  - Saves to _out.json_
 
 #### Image Control
 
