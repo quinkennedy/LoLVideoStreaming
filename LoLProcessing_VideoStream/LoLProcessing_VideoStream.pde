@@ -92,6 +92,13 @@ public void choseVideo(File video){
   if (video != null) {
     movie = new Movie(this, video.getAbsolutePath());
     movie.loop();
+    /*
+    //TODO: an attempt to capture all the video frames
+    // i'm not sure it is worth it right now
+    // this seems to only play at the set framerate during the first loop
+    // so if this is for recording, maybe we should change framerate only during recoring
+    movie.frameRate(10);
+    */
   }
   bWaitingForMovie = false;
 }
