@@ -2,9 +2,18 @@ A project to be able to stream video and pictures over the serial connection to 
 
 ## Setup
 
+### Streaming
+
 * Install LoLShield_VideoStream on an Arduino
 * Run LoLProcessing_VideoStream in Processing
 * Connect Arduino to computer (for serial communication)
+* Use __S__ command to start streaming
+
+### Record & Playback
+
+* Run LoLProcessing_VideoStream in Processing
+* Record byte array with __F__ command
+* Follow directions in [LoLShield_Playback](LoLShield_Playback/) to translate byte array for the Arduino
 
 ## Usage
 
